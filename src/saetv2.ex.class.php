@@ -355,7 +355,9 @@ class SaeTOAuthV2 {
 		curl_setopt($ci, CURLOPT_ENCODING, "");
 		curl_setopt($ci, CURLOPT_SSL_VERIFYPEER, $this->ssl_verifypeer);
 		curl_setopt($ci, CURLOPT_HEADERFUNCTION, array($this, 'getHeader'));
-		curl_setopt($ci, CURLOPT_HEADER, FALSE);
+		// curl_setopt($ci, CURLOPT_HEADER, FALSE);
+		curl_setopt($ci, CURLOPT_HEADER, TRUE);
+		curl_setopt($ci, CURLOPT_VERBOSE, TRUE);
 
 		switch ($method) {
 			case 'POST':
@@ -381,22 +383,44 @@ class SaeTOAuthV2 {
 		curl_setopt($ci, CURLINFO_HEADER_OUT, TRUE );
 
 		$response = curl_exec($ci);
+
+		$header_size = curl_getinfo($ci, CURLINFO_HEADER_SIZE);
+		$response_headers = substr($response, 0, $header_size);
+		$response_body = substr($response, $header_size);
+
 		$this->http_code = curl_getinfo($ci, CURLINFO_HTTP_CODE);
 		$this->http_info = array_merge($this->http_info, curl_getinfo($ci));
 		$this->url = $url;
 
 		if ($this->debug) {
-			echo "=====post data======\r\n";
+			echo '<pre>';
+			echo "=== start debug ==\n";
+			echo "=====post data======\n";
 			var_dump($postfields);
 
-			echo '=====info====='."\r\n";
+			echo "\n=====url=====\n";
+			echo $url."\n";
+
+			echo "\n=====code=====\n";
+			echo $this->http_code."\n";
+
+			echo "\n=====info=====\n";
 			print_r( curl_getinfo($ci) );
 
-			echo '=====$response====='."\r\n";
+			echo "\n=====response=====\n";
 			print_r( $response );
+
+			echo "\n=====response_headers=====\n";
+			print_r( $response_headers );
+
+			echo "\n=====response_body=====\n";
+			print_r( $response_body );
+
+			echo "=== end debug ==\n";
+			echo '</pre>';
 		}
 		curl_close ($ci);
-		return $response;
+		return $response_body;
 	}
 
 	/**
